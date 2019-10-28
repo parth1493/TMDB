@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +25,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
 
-    private ArrayList<Movie> moviesArryList;
+    private PagedList<Movie> moviesArryList;
     private RecyclerView recyclerView;
     private MovieAdapter movieAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -56,20 +57,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getPopularMovies() {
-        mainActivityViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
+//        mainActivityViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
+//            @Override
+//            public void onChanged(List<Movie> movies) {
+//                moviesArryList = (ArrayList<Movie>) movies;
+//                showOnRecyclerView();
+//            }
+//        });
+        mainActivityViewModel.getPagedListLiveData().observe(this, new Observer<PagedList<Movie>>() {
             @Override
-            public void onChanged(List<Movie> movies) {
-                moviesArryList = (ArrayList<Movie>) movies;
+            public void onChanged(PagedList<Movie> moviePagedList) {
+                moviesArryList = moviePagedList;
                 showOnRecyclerView();
             }
         });
-
     }
 
     private void showOnRecyclerView() {
 
         recyclerView = activityMainBinding.rvMovies;
-        movieAdapter = new MovieAdapter(this, moviesArryList);
+        movieAdapter = new MovieAdapter(this);
+        movieAdapter.submitList(moviesArryList);
 
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 
