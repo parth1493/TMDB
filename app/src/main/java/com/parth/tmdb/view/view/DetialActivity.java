@@ -4,15 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.bumptech.glide.Glide;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.parth.tmdb.R;
-import com.parth.tmdb.view.model.Movie;
+import com.parth.tmdb.databinding.ActivityDetialBinding;
+import com.parth.tmdb.view.model.entity.Movie;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.databinding.DataBindingUtil;
 
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,11 +20,7 @@ public class DetialActivity extends AppCompatActivity {
 
     private Movie movie;
 
-    private ImageView movieImage;
-
-    private String image;
-
-    private TextView movieTitle, movieSynopsis, movieRating, movieReleaseDate;
+    private ActivityDetialBinding activityDetialBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +30,7 @@ public class DetialActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        movieImage = findViewById(R.id.ivMovieLarge);
-        movieTitle = findViewById(R.id.tvMovieTitle);
-        movieSynopsis = findViewById(R.id.tvPlotsynopsis);
-        movieRating = findViewById(R.id.tvMovieRating);
-        movieReleaseDate = findViewById(R.id.tvReleaseDate);
-
+        activityDetialBinding = DataBindingUtil.setContentView(this,R.layout.activity_detial);
 
         Intent intent = getIntent();
 
@@ -48,23 +38,10 @@ public class DetialActivity extends AppCompatActivity {
 
             movie = getIntent().getParcelableExtra("movie");
 
-            Toast.makeText(getApplicationContext(), movie.getOriginalTitle(), Toast.LENGTH_LONG).show();
-
-            image = movie.getPosterPath();
-
-            String path = "https://image.tmdb.org/t/p/w500" + image;
-
-            Glide.with(this)
-                    .load(path)
-                    .placeholder(R.drawable.loading)
-                    .into(movieImage);
+            activityDetialBinding.setMovie(movie);
 
             getSupportActionBar().setTitle(movie.getTitle());
 
-            movieTitle.setText(movie.getTitle());
-            movieSynopsis.setText(movie.getOverview());
-            movieRating.setText(Double.toString(movie.getVoteAverage()));
-            movieReleaseDate.setText(movie.getReleaseDate());
         }
 
     }

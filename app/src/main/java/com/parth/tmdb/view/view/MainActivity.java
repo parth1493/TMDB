@@ -1,6 +1,9 @@
 package com.parth.tmdb.view.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,25 +13,23 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.parth.tmdb.R;
+import com.parth.tmdb.databinding.ActivityMainBinding;
 import com.parth.tmdb.view.adapter.MovieAdapter;
-import com.parth.tmdb.view.model.Movie;
-import com.parth.tmdb.view.model.MovieDBResponse;
-import com.parth.tmdb.view.service.MovieDataService;
-import com.parth.tmdb.view.service.RetrofitInstance;
+import com.parth.tmdb.view.model.entity.Movie;
+import com.parth.tmdb.view.viewmodel.MainActivityViewModel;
 
 import java.util.ArrayList;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
 
-    private ArrayList<Movie> movies;
+    private ArrayList<Movie> moviesArryList;
     private RecyclerView recyclerView;
     private MovieAdapter movieAdapter;
     private SwipeRefreshLayout swipeRefreshLayout;
+    private MainActivityViewModel mainActivityViewModel;
+    private ActivityMainBinding activityMainBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +37,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         getSupportActionBar().setTitle("TMDB Popular Movies Today");
 
+        activityMainBinding= DataBindingUtil.setContentView(this,R.layout.activity_main);
+
+        mainActivityViewModel = new ViewModelProvider(MainActivity.this).get(MainActivityViewModel.class);
+
         getPopularMovies();
 
-
-        swipeRefreshLayout = findViewById(R.id.swipe_layout);
+        swipeRefreshLayout = activityMainBinding.swipeLayout;
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -52,33 +56,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getPopularMovies() {
-
-        MovieDataService movieDataService = RetrofitInstance.getService();
-
-        Call<MovieDBResponse> call = movieDataService.getPopularMovies(this.getString(R.string.api_key));
-
-        call.enqueue(new Callback<MovieDBResponse>() {
+        mainActivityViewModel.getAllMovies().observe(this, new Observer<List<Movie>>() {
             @Override
-            public void onResponse(Call<MovieDBResponse> call, Response<MovieDBResponse> response) {
-
-                MovieDBResponse movieDBResponse = response.body();
-
-
-                if (movieDBResponse != null && movieDBResponse.getMovies() != null) {
-
-
-                    movies = (ArrayList<Movie>) movieDBResponse.getMovies();
-                    showOnRecyclerView();
-
-
-                }
-
-
-            }
-
-            @Override
-            public void onFailure(Call<MovieDBResponse> call, Throwable t) {
-
+            public void onChanged(List<Movie> movies) {
+                moviesArryList = (ArrayList<Movie>) movies;
+                showOnRecyclerView();
             }
         });
 
@@ -86,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showOnRecyclerView() {
 
-        recyclerView = findViewById(R.id.rvMovies);
-        movieAdapter = new MovieAdapter(this, movies);
+        recyclerView = activityMainBinding.rvMovies;
+        movieAdapter = new MovieAdapter(this, moviesArryList);
 
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
 
